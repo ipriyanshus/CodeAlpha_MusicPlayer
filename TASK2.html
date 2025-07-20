@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Modern Music Player</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="player">
+        <h2 id="title">Song Title</h2>
+        <h3 id="artist">Artist</h3>
+        <audio id="audio" preload="metadata"></audio>
+
+        <div class="controls">
+            <button id="prev">⏮️</button>
+            <button id="play">▶️</button>
+            <button id="next">⏭️</button>
+        </div>
+
+        <div class="info">
+            <span id="currentTime">0:00</span>
+            <input type="range" id="progress" value="0">
+            <span id="duration">0:00</span>
+        </div>
+
+        <div class="volume">
+            🔊 <input type="range" id="volumeControl" min="0" max="1" step="0.01" value="1">
+        </div>
+
+        <ul id="playlist"></ul>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+<script>
+    const audio = document.getElementById('audio');
+    const playBtn = document.getElementById('play');
+    const prevBtn = document.getElementById('prev');
+    const nextBtn = document.getElementById('next');
+    const title = document.getElementById('title');
+    const artist = document.getElementById('artist');
+    const currentTime = document.getElementById('currentTime');
+    const duration = document.getElementById('duration');
+    const progress = document.getElementById('progress');
+    const volumeControl = document.getElementById('volumeControl');
+    const playlist = document.getElementById('playlist');
+
+    const songs = [
+        { title: "Ocean Eyes", artist: "Billie Eilish", src: "songs/ocean-eyes.mp3" },
+        { title: "Blinding Lights", artist: "The Weeknd", src: "songs/blinding-lights.mp3" },
+        { title: "Shape of You", artist: "Ed Sheeran", src: "songs/shape-of-you.mp3" }
+    ];
+
+    let currentSongIndex = 0;
+
+    function loadSong(index) {
+        const song = songs[index];
+        audio.src = song.src;
+        title.textContent = song.title;
+        artist.textContent = song.artist;
+        audio.load();
+    }
+
+    function playPause() {
+        if (audio.paused) {
+            audio.play();
+            playBtn.textContent = "⏸️";
+        } else {
+            audio.pause();
+            playBtn.textContent = "▶️";
+        }
+    }
+
+    function nextSong() {
+        currentSongIndex = (currentSongIndex + 1) % songs.length;
+        loadSong(currentSongIndex);
+        audio.play();
+    }
+
+    function prevSong() {
+        currentSongIndex = (currentSongIndex - 1 + songs.length) % songs.length;
+        loadSong(currentSongIndex);
+        audio.play();
+    }
+
+    audio.addEventListener('timeupdate', () => {
+        progress.value = (audio.currentTime / audio.duration) * 100 || 0;
+        currentTime.textContent = formatTime(audio.currentTime);
+        duration.textContent = formatTime(audio.duration);
+    });
+
+    progress.addEventListener('input', () => {
+        audio.currentTime = (progress.value * audio.duration) / 100;
+    });
+
+    volumeControl.addEventListener('input', () => {
+        audio.volume = volumeControl.value;
+    });
+
+    function formatTime(sec) {
+        const m = Math.floor(sec / 60);
+        const s = Math.floor(sec % 60);
+        return `${m}:${s < 10 ? '0' + s : s}`;
+    }
+
+    playlist.innerHTML = songs.map((song, i) =>
+        `<li onclick="selectSong(${i})">${song.title} - ${song.artist}</li>`).join('');
+
+    function selectSong(index) {
+        currentSongIndex = index;
+        loadSong(index);
+        audio.play();
+    }
+
+    audio.addEventListener('ended', nextSong); // autoplay next
+
+    loadSong(currentSongIndex); // initial load
+</script>
+
+</html>
